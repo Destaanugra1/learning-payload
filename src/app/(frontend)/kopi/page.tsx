@@ -35,8 +35,8 @@ export default async function KopiPage() {
                                 alt={media.alt || kopi.nama_kopi}
                                 fill
                                 className="object-cover group-hover:scale-105 transition duration-300"
-                                unoptimized={true}
-                                priority={index === 0}
+                                // unoptimized={true}
+                                // priority={index === 0}
                             />
                         ) : (
                             <div className="flex items-center justify-center h-full text-zinc-500 text-sm">
