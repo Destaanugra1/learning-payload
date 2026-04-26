@@ -1,0 +1,14 @@
+.rich-text-lexical {
+  .ContentEditable__root {
+    min-height: 120px;
+    padding: 12px 16px;
+    border: 1px solid var(--theme-elevation-150);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    outline: none;
+
+    &:focus {
+      border-color: var(--theme-elevation-400);
+    }
+  }
+}

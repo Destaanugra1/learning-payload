@@ -4,10 +4,13 @@ import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
-
+// import comp from './components/Customnav'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { InventarisKopi } from './collections/InventarisKopi'
+import { Posts } from './collections/Post'
+import { Categories } from './collections/Categories'
+import { seoPlugin } from '@payloadcms/plugin-seo'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -18,11 +21,15 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    // styles: {
+    //   css: path.resolve(dirname, './styles/admin.css'),
+    // },
+
+    components: {
+      Nav: '@/components/Customnav',
+    },
   },
-  collections: [
-    Users, 
-    Media,
-    InventarisKopi],
+  collections: [Users, Media, InventarisKopi, Categories, Posts],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
@@ -34,5 +41,14 @@ export default buildConfig({
     },
   }),
   sharp,
-  plugins: [],
+  plugins: [
+    seoPlugin({
+      collections: ['posts'],
+      uploadsCollection: 'media',
+      generateTitle: ({ doc }) => `Blog — ${doc?.title || 'Artikel'}`,
+      generateDescription: ({ doc }) => doc?.description || '',
+      generateURL: ({ doc }) => `http://localhost:3000/blog/${doc?.slug || ''}`,
+      tabbedUI: true,
+    }),
+  ],
 })

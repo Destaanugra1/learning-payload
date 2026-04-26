@@ -70,6 +70,8 @@ export interface Config {
     users: User;
     media: Media;
     'inventaris-kopi': InventarisKopi;
+    categories: Category;
+    posts: Post;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +82,8 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'inventaris-kopi': InventarisKopiSelect<false> | InventarisKopiSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -145,12 +149,25 @@ export interface User {
   collection: 'users';
 }
 /**
+ * Kelola semua aset gambar yang diupload ke Cloudinary.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
   id: number;
+  /**
+   * Wajib diisi. Contoh: "Barista menyeduh kopi arabika di kedai"
+   */
   alt: string;
+  caption?: string | null;
+  /**
+   * Untuk memudahkan filter di library.
+   */
+  category?: ('general' | 'banner' | 'thumbnail' | 'gallery' | 'og-image' | 'branding') | null;
+  /**
+   * Diisi otomatis setelah upload berhasil.
+   */
   cloudinaryUrl?: string | null;
   cloudinaryPublicId?: string | null;
   updatedAt: string;
@@ -177,6 +194,120 @@ export interface InventarisKopi {
   kategori?: ('robusta' | 'arabika') | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * Kelola kategori untuk artikel/post.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  name: string;
+  /**
+   * Akan diisi otomatis dari nama jika kosong.
+   */
+  slug: string;
+  /**
+   * Deskripsi singkat kategori (opsional).
+   */
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Kelola semua artikel dan berita di sini.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: number;
+  title: string;
+  /**
+   * Akan diisi otomatis dari judul. Contoh: tips-kopi-arabika
+   */
+  slug: string;
+  /**
+   * Deskripsi singkat artikel untuk ditampilkan di halaman depan.
+   */
+  description?: string | null;
+  /**
+   * Tulis isi artikel lengkap di sini (mendukung gambar, tabel, dll).
+   */
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Centang untuk menampilkan gambar banner besar di halaman detail artikel.
+   */
+  showBanner?: boolean | null;
+  bannerImage?: (number | null) | Media;
+  thumbnail?: (number | null) | Media;
+  gallery?:
+    | {
+        image: number | Media;
+        caption?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  status?: ('draft' | 'published') | null;
+  publishedAt?: string | null;
+  category: number | Category;
+  /**
+   * Tambahkan tag untuk membantu pencarian.
+   */
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  author?: (number | null) | User;
+  readTime?: number | null;
+  isTrending?: boolean | null;
+  /**
+   * Centang untuk memunculkan artikel ini di banner utama paling atas.
+   */
+  isFeatured?: boolean | null;
+  isBreakingNews?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -213,6 +344,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'inventaris-kopi';
         value: number | InventarisKopi;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'posts';
+        value: number | Post;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -284,6 +423,8 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  caption?: T;
+  category?: T;
   cloudinaryUrl?: T;
   cloudinaryPublicId?: T;
   updatedAt?: T;
@@ -309,6 +450,61 @@ export interface InventarisKopiSelect<T extends boolean = true> {
   kategori?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  description?: T;
+  content?: T;
+  showBanner?: T;
+  bannerImage?: T;
+  thumbnail?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        id?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  status?: T;
+  publishedAt?: T;
+  category?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  author?: T;
+  readTime?: T;
+  isTrending?: T;
+  isFeatured?: T;
+  isBreakingNews?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
